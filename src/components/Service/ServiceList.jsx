@@ -11,6 +11,7 @@ import StaffSelectionModal from "../Staff/StaffSelectionModal";
 import DateTimeSelection from "../Calendar/DateTimeSelection";
 import OrderSummary from "../Order/OrderSumamry";
 import BookingForm from "../Order/BookingForm";
+import ConfirmationDialog from "../Order/ConfirmationPage";
 
 const serviceCategories = [
   { id: "manicures-pedicures", name: "Manicures & Pedicures", count: 30 },
@@ -81,9 +82,11 @@ const Services = () => {
   const [isDateTimeModalOpen, setIsDateTimeModalOpen] = useState(false);
   const [isOrderSummaryModalOpen, setIsOrderSummaryModalOpen] = useState(false);
   const [isBookingFormOpen, setIsBookingFormOpen] = useState(false);
+  const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [selectedServices, setSelectedServices] = useState([]);
+  const [bookingDetails, setBookingDetails] = useState(null);
 
   const handleSelect = (service) => {
     setSelectedService(service);
@@ -105,7 +108,7 @@ const Services = () => {
       ...selectedService,
       staffId: selectedStaff,
       staffName: `Staff ${selectedStaff}`,
-      date,
+      date: date.toISOString(),
       time,
     };
     setSelectedServices([...selectedServices, newService]);
@@ -136,22 +139,36 @@ const Services = () => {
   };
 
   const handleConfirmBooking = () => {
-    console.log("Booking confirmed:", selectedServices);
     setIsOrderSummaryModalOpen(false);
     setIsBookingFormOpen(true);
   };
 
   const handleBookingFormSubmit = (formData) => {
-    console.log("Booking confirmed:", {
-      ...formData,
-      services: selectedServices,
-    });
+    const bookingInfo = { ...formData, services: selectedServices };
+    console.log("Booking confirmed:", bookingInfo);
+    setBookingDetails(bookingInfo);
     setIsBookingFormOpen(false);
+    setIsConfirmationDialogOpen(true);
+  };
+
+  const handleBackToOrder = () => {
+    setIsBookingFormOpen(false);
+    setIsOrderSummaryModalOpen(true);
+  };
+
+  const handleCloseConfirmation = () => {
+    setIsConfirmationDialogOpen(false);
+    setSelectedCategory(serviceCategories[0].id);
+    setSelectedService(null);
+    setSelectedStaff(null);
+    setSelectedServices([]);
+    setBookingDetails(null);
   };
 
   const filteredServices = servicesData.filter(
     (service) => service.category === selectedCategory
   );
+
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-[1200px]">
@@ -256,6 +273,13 @@ const Services = () => {
         isOpen={isBookingFormOpen}
         onClose={() => setIsBookingFormOpen(false)}
         onSubmit={handleBookingFormSubmit}
+        onBack={handleBackToOrder}
+      />
+
+      <ConfirmationDialog
+        isOpen={isConfirmationDialogOpen}
+        onClose={handleCloseConfirmation}
+        bookingDetails={bookingDetails}
       />
     </div>
   );
